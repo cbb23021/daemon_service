@@ -1,0 +1,58 @@
+version: '3.5'
+
+services:
+
+#### BEGIN REDIS SEVERS ####
+
+  daemon_redis:
+    image: redis:5.0
+    networks:
+      - daemon-network
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ./db/redis/daemon_data:/data
+    container_name: daemon_redis
+
+ #### END REDIS SEVERS ####
+
+  daemon_phpmyadmin:
+    image: phpmyadmin/phpmyadmin:4.9.4
+    networks:
+      - daemon-network
+    environment:
+      - PMA_HOST=daemon_mysql
+      - UPLOAD_LIMIT=500M
+    volumes:
+      - ./config/phpmyadmin/config.inc.php:/etc/phpmyadmin/config.inc.php
+    ports:
+      - 8074:80
+    container_name: daemon_phpmyadmin
+
+  daemon_mysql:
+    build:
+      context: .
+      dockerfile: ./config/mysql/Dockerfile
+    image: cbb23021/mysql:5.7
+    networks:
+      - daemon-network
+    environment:
+      - TZ=Asia/Taipei
+      - MYSQL_ROOT_PASSWORD=root
+      - DB_NAME=daemon
+      - USERNAME=mc
+      - PASSWORD=mc
+    volumes:
+      - ./db/mysql/mysql_data:/var/lib/mysql
+      - ./config/mysql/my.cnf:/etc/mysql/my.cnf
+      - ./config/mysql/backup.py:/tmp/backup.py
+      - ./init:/docker-entrypoint-initdb.d:ro
+      - ~/daemon/daemon_backup:/backup:rw
+    container_name: daemon_mysql
+
+#### Application Services ####
+
+networks:
+  daemon-network:
+    name: local
+    driver: bridge
+
