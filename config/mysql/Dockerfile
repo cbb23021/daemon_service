@@ -1,12 +1,12 @@
 # Container/Image name
-FROM  mysql:5.7
+FROM  mysql:5.7-debian
 LABEL maintainer="Michael Chou<snoopy02m@gmail.com>"
 
 # # Install apk
-RUN apt update
-RUN apt -y install vim
-RUN apt -y install tzdata
-RUN apt -y install python3-pip
+RUN apt-get update
+RUN apt-get -y install vim
+RUN apt-get -y install tzdata
+RUN apt-get -y install python3-pip
 
 # set timezone
 ENV ENV="/root/.bashrc"
